@@ -91,7 +91,7 @@ def mod_memory(data):
         if len(opts) != 5:
             raise ValueError
     except ValueError:
-        return "memory: Invalid input"
+        return "Invalid input"
     if not n in memory:
         memory[n] = []
     if len(memory[n]) == 0:
@@ -99,57 +99,57 @@ def mod_memory(data):
         cur = memory[n][0]
         if opts[0] in [1,2]:
             cur.update({"pos": 1, "label": opts[1]})
-            return "memory: pos 2"
+            return "pos 2"
         elif opts[0] == 3:
             cur.update({"pos": 2, "label": opts[2]})
-            return "memory: pos 3"
+            return "pos 3"
         elif opts[0] == 4:
             cur.update({"pos": 3, "label": opts[3]})
-            return "memory: pos 4"
+            return "pos 4"
     if len(memory[n]) == 1:
         memory[n].append({"opts": opts})
         cur = memory[n][1]
         if opts[0] == 1:
             cur.update({"pos": opts.index(4), "label": 4})
-            return "memory: label 4"
+            return "label 4"
         if opts[0] in [2,4]:
             pos = memory[n][0]["pos"]
             cur.update({"pos": pos, "label": opts[pos]})
-            return "memory: pos {}".format(pos+1)
+            return "pos {}".format(pos+1)
         if opts[0] == 3:
             cur.update({"pos": 0, "label": opts[0]})
-            return "memory: pos 1"
+            return "pos 1"
     if len(memory[n]) == 2:
         memory[n].append({"opts": opts})
         cur = memory[n][2]
         if opts[0] == 1:
             label = memory[n][1]["label"]
             cur.update({"pos": opts.index(label), "label": label})
-            return "memory: label {}".format(label)
+            return "label {}".format(label)
         if opts[0] == 2:
             label = memory[n][0]["label"]
             cur.update({"pos": opts.index(label), "label": label})
-            return "memory: label {}".format(label)
+            return "label {}".format(label)
         if opts[0] == 3:
             cur.update({"pos": 2, "label": opts[2]})
-            return "memory: pos 3"
+            return "pos 3"
         if opts[0] == 4:
             cur.update({"pos": opts.index(4), "label": 4})
-            return "memory: label 4"
+            return "label 4"
     if len(memory[n]) == 3:
         memory[n].append({"opts": opts})
         cur = memory[n][3]
         if opts[0] == 1:
             pos = memory[n][0]["pos"]
             cur.update({"pos": pos, "label": opts[pos]})
-            return "memory: pos {}".format(pos+1)
+            return "pos {}".format(pos+1)
         if opts[0] == 2:
             cur.update({"pos": 0, "label": opts[0]})
-            return "memory: pos 1"
+            return "pos 1"
         if opts[0] in [3,4]:
             pos = memory[n][1]["pos"]
             cur.update({"pos": pos, "label": opts[pos]})
-            return "memory: pos {}".format(pos+1)
+            return "pos {}".format(pos+1)
     if len(memory[n]) == 4:
         if opts[0] == 1:
             label = memory[n][0]["label"]
@@ -159,7 +159,7 @@ def mod_memory(data):
             label = memory[n][3]["label"]
         if opts[0] == 4:
             label = memory[n][2]["label"]
-        return "memory: label {}".format(label)
+        return "label {}".format(label)
 
 if __name__ == "__main__":
     response = twpy.chat()
