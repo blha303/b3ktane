@@ -4,9 +4,10 @@ import json
 with open("settings.json") as f:
     opts = json.load(f)
 
-BOMB = {
+_BOMB = {
         "seed": "",
         "time": "",
+        "time_pretty": "",
         "strikes": "",
         "flip": "",
         "serial": "",
@@ -16,8 +17,9 @@ BOMB = {
         "ports": [],
         "batts": [],
         "indicators": {"unlit": [], "lit": []},
+        "rip": False
         }
-_BOMB = dict(BOMB)
+BOMB = dict(_BOMB)
 
 def hms(s):
     m,s = divmod(int(s), 60)
@@ -30,10 +32,10 @@ def parse(line):
         return
     modid, info = line.strip().split(maxsplit=4)[3:]
     split = info.split()
-    if modid == "[BombGenerator]":
+    # disabled block, unnecessary
+    if False and modid == "[BombGenerator]":
         # [BombGenerator] Generating bomb with seed 1022778702
-        if info.startswith("Generating bomb with seed"):
-            BOMB = dict(_BOMB)
+        if "seed" in info:
             BOMB["seed"] = split[-1]
         # [BombGenerator] Generator settings: Time: 5520, NumStrikes: 3, FrontFaceOnly: False
         if info.startswith("Generator settings:"):
@@ -58,7 +60,7 @@ def parse(line):
         # [PortWidget] Randomizing Port Widget: 0
         if split[-1] != "0":
         # [PortWidget] Randomizing Port Widget: RJ45
-            BOMB["ports"].append(split[-1])
+            BOMB["ports"].append(split[-1].replace("Stereo", "").lower())
     if modid == "[BatteryWidget]":
         # [BatteryWidget] Randomizing Battery Widget: 2
         # 1 = d, 2 = aa
@@ -69,13 +71,21 @@ def parse(line):
     if modid == "[SerialNumber]":
         # [SerialNumber] Randomizing Serial Number: 9D3IQ9
         BOMB["serial"] = split[-1]
+    if modid == "[Bomb]":
+        if info == "Boom":
+            BOMB["rip"] = True
+            update_overlay()
+            BOMB = dict(_BOMB)
 
 def update_overlay(p=True):
     if p:
         print(json.dumps(BOMB, indent=4) + "\n-----------------------------------")
-    if any(k not in BOMB for k in ["serial", "ports", "indicators", "batts", "plates", "holders"]):
-        return
     with open(opts["overlay-output"], "w", encoding="utf-8") as f:
+        if BOMB["rip"]:
+            f.write("rip\n")
+            return
+        if any(k not in BOMB for k in ["serial", "ports", "indicators", "batts", "plates", "holders"]):
+            return
         ports = (",".join(BOMB["ports"]) if BOMB["ports"] else "no ports") + " {}p".format(BOMB["plates"])
         inds = "\n".join("{} {}".format(k,",".join(v)) for k,v in BOMB["indicators"].items() if v) if BOMB["indicators"]["unlit"] or BOMB["indicators"]["lit"] else "no indicators"
         batts = ("{}aa".format(int(BOMB["batts"].count("2"))*2) if "2" in BOMB["batts"] else "") + \
