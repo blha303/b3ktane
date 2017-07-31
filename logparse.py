@@ -60,7 +60,9 @@ def parse(line):
         # [PortWidget] Randomizing Port Widget: 0
         if split[-1] != "0":
         # [PortWidget] Randomizing Port Widget: RJ45
-            BOMB["ports"].append(split[-1].replace("Stereo", "").lower())
+            BOMB["ports"] += [a.replace(",", "") for a in split[3:]]
+        else:
+            BOMB["ports"] += ["blank"]
     if modid == "[BatteryWidget]":
         # [BatteryWidget] Randomizing Battery Widget: 2
         # 1 = d, 2 = aa
