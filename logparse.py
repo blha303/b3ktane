@@ -19,7 +19,11 @@ _BOMB = {
         "indicators": {"unlit": [], "lit": []},
         "rip": False
         }
-BOMB = dict(_BOMB)
+
+def reset_bomb():
+    print("RESETTING")
+    return {k:type(v)(v) for k,v in _BOMB.items()}
+BOMB = reset_bomb()
 
 def hms(s):
     m,s = divmod(int(s), 60)
@@ -28,72 +32,83 @@ def hms(s):
 
 def parse(line):
     global BOMB
-    if line[:5] not in ["DEBUG", "INFO"]:
+    if "[Assets.Scripts." in line:
         return
-    modid, info = line.strip().split(maxsplit=4)[3:]
-    split = info.split()
-    # disabled block, unnecessary
-    if False and modid == "[BombGenerator]":
+    try:
+        modid, *split = line.strip().split()[3:]
+        if not modid or modid[0] != "[":
+            raise ValueError
+    except ValueError:
+        return
+    info = " ".join(split)
+    if modid == "[BombGenerator]":
         # [BombGenerator] Generating bomb with seed 1022778702
-        if "seed" in info:
+        if "Generating bomb with seed" in info:
             BOMB["seed"] = split[-1]
         # [BombGenerator] Generator settings: Time: 5520, NumStrikes: 3, FrontFaceOnly: False
-        if info.startswith("Generator settings:"):
+        elif info.startswith("Generator settings:"):
             BOMB["time"], BOMB["strikes"], BOMB["flip"] = \
-                    [a.split(", ")[0] for a in info.split(": ")]
+                    [a.split(", ")[0] for a in info.split(": ")[2:]]
             BOMB["time_pretty"] = "{0}:{1:02d}:{2:02d}".format(*hms(BOMB["time"]))
+        # disabled
         # [BombGenerator] Instantiated AdvancedMorse on face RearFace, spawn index 8
-        if info.startswith("Instantiated "):
+        elif False and info.startswith("Instantiated "):
             BOMB["modules"].append({
                 "module": split[1],
                 "face": split[-4][:-1],
                 "index": split[-1]
             })
-    if modid == "[WidgetGenerator]":
+    elif modid == "[WidgetGenerator]":
         # [WidgetGenerator] Added widget: PortWidget at 0, 1
         if info.startswith("Added widget: PortWidget"):
             BOMB["plates"] += 1
         # [WidgetGenerator] Added widget: BatteryWidget at 0, 1
-        if info.startswith("Added widget: BatteryWidget"):
+        elif info.startswith("Added widget: BatteryWidget"):
             BOMB["holders"] += 1
-    if modid == "[PortWidget]":
+    elif modid == "[PortWidget]":
         # [PortWidget] Randomizing Port Widget: 0
         if split[-1] != "0":
         # [PortWidget] Randomizing Port Widget: RJ45
-            BOMB["ports"] += [a.replace(",", "") for a in split[3:]]
+            BOMB["ports"].append([a.lower().replace(",", "").replace("stereo", "") for a in split[3:]])
         else:
-            BOMB["ports"] += ["blank"]
-    if modid == "[BatteryWidget]":
+            BOMB["ports"].append(["blank"])
+    elif modid == "[BatteryWidget]":
         # [BatteryWidget] Randomizing Battery Widget: 2
         # 1 = d, 2 = aa
         BOMB["batts"].append(split[-1])
-    if modid == "[IndicatorWidget]":
+    elif modid == "[IndicatorWidget]":
         # [IndicatorWidget] Randomizing Indicator Widget: unlit IND
         BOMB["indicators"][split[-2]].append(split[-1])
-    if modid == "[SerialNumber]":
+    elif modid == "[SerialNumber]":
         # [SerialNumber] Randomizing Serial Number: 9D3IQ9
         BOMB["serial"] = split[-1]
-    if modid == "[Bomb]":
-        if info == "Boom":
+    elif modid == "[Bomb]":
+        if split[-1] == "Boom":
             BOMB["rip"] = True
-            update_overlay()
-            BOMB = dict(_BOMB)
+    else:
+        return
+    print(line)
 
 def update_overlay(p=True):
+    global BOMB
     if p:
         print(json.dumps(BOMB, indent=4) + "\n-----------------------------------")
-    with open(opts["overlay-output"], "w", encoding="utf-8") as f:
+    with open(opts["overlay-output"], "w+", encoding="utf-8") as f:
         if BOMB["rip"]:
-            f.write("rip\n")
+            f.write("rip\nwaiting for\nnext bomb")
+            BOMB = reset_bomb()
             return
-        if any(k not in BOMB for k in ["serial", "ports", "indicators", "batts", "plates", "holders"]):
+        if not all(BOMB[k] for k in ["serial", "ports", "batts", "holders"]):
             return
-        ports = (",".join(BOMB["ports"]) if BOMB["ports"] else "no ports") + " {}p".format(BOMB["plates"])
+        ports = (";".join(",".join(p) for p in BOMB["ports"]) if BOMB["ports"] else "no ports") + " {}p".format(BOMB["plates"])
         inds = "\n".join("{} {}".format(k,",".join(v)) for k,v in BOMB["indicators"].items() if v) if BOMB["indicators"]["unlit"] or BOMB["indicators"]["lit"] else "no indicators"
         batts = ("{}aa".format(int(BOMB["batts"].count("2"))*2) if "2" in BOMB["batts"] else "") + \
                 ("{}d".format(BOMB["batts"].count("1")) if "1" in BOMB["batts"] else "") + \
                 ("{}h".format(BOMB["holders"]) if BOMB["holders"] > 0 else "no batteries")
-        f.write("\n".join([BOMB["serial"], ports, inds, batts]) + "\n")
+        out = "\n".join([BOMB["serial"], ports, inds, batts]) + "\n"
+        if f.read() != out:
+            f.seek(0)
+            f.write(out)
 
 with open(opts["ktane-log"]) as f:
     curbomb = f.read().split("[State] Enter GameplayState\n")[-1].split("\n")
