@@ -107,7 +107,7 @@ def update_overlay(p=True):
         batts = ("{}aa".format(int(BOMB["batts"].count("2"))*2) if "2" in BOMB["batts"] else "") + \
                 ("{}d".format(BOMB["batts"].count("1")) if "1" in BOMB["batts"] else "") + \
                 ("{}h".format(BOMB["holders"]) if BOMB["holders"] > 0 else "no batteries")
-        out = "\n".join([BOMB["serial"], ports, inds, batts]) + "\n"
+        out = " | ".join([BOMB["serial"], ports, inds, batts])
         if f.read() != out:
             f.seek(0)
             f.write(out)
