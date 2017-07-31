@@ -50,6 +50,8 @@ def parse(line):
             BOMB["time"], BOMB["strikes"], BOMB["flip"] = \
                     [a.split(", ")[0] for a in info.split(": ")[2:]]
             BOMB["time_pretty"] = "{0}:{1:02d}:{2:02d}".format(*hms(BOMB["time"]))
+            with open("initial-time.txt", "w") as f:
+                f.write(BOMB["time_pretty"])
         # disabled
         # [BombGenerator] Instantiated AdvancedMorse on face RearFace, spawn index 8
         elif False and info.startswith("Instantiated "):

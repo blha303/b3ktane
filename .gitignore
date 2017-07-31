@@ -2,4 +2,4 @@ settings.json
 *.swp
 ktane.log
 __pycache__
-overlay.txt
+*.txt
