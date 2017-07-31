@@ -88,7 +88,7 @@ def update_overlay(p=True):
         if not all(BOMB[k] for k in ["serial", "ports", "batts", "holders"]):
             return
         ports = (";".join(",".join(p) for p in BOMB["ports"]) if BOMB["ports"] else "no ports") + " {}p".format(BOMB["plates"])
-        inds = "\n".join("{} {}".format(k,",".join(v)) for k,v in BOMB["indicators"].items() if v) if BOMB["indicators"]["unlit"] or BOMB["indicators"]["lit"] else "no indicators"
+        inds = "; ".join("{} {}".format(k,",".join(v)) for k,v in BOMB["indicators"].items() if v) if BOMB["indicators"]["unlit"] or BOMB["indicators"]["lit"] else "no indicators"
         batts = ("{}aa".format(int(BOMB["batts"].count("2"))*2) if "2" in BOMB["batts"] else "") + \
                 ("{}d".format(BOMB["batts"].count("1")) if "1" in BOMB["batts"] else "") + \
                 ("{}h".format(BOMB["holders"]) if BOMB["holders"] > 0 else "no batteries")
