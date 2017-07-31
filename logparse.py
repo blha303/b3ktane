@@ -70,8 +70,10 @@ def parse(line):
         # [SerialNumber] Randomizing Serial Number: 9D3IQ9
         BOMB["serial"] = split[-1]
     elif modid == "[Bomb]":
-        if split[-1] == "Boom":
+        if "Boom" in info or "A winner is you" in info:
             BOMB["rip"] = True
+            if split[-1] != "Boom":
+                BOMB["win"] = True
     else:
         return
     print(line)
@@ -82,7 +84,10 @@ def update_overlay(p=True):
         print(json.dumps(BOMB, indent=4) + "\n-----------------------------------")
     with open(opts["overlay-output"], "w+", encoding="utf-8") as f:
         if BOMB["rip"]:
-            f.write("rip\nwaiting for\nnext bomb")
+            if not BOMB["win"]:
+                f.write("rip\nwaiting for\nnext bomb")
+            else:
+                f.write("grats")
             BOMB = reset_bomb()
             return
         if not all(BOMB[k] for k in ["serial", "ports", "batts", "holders"]):
