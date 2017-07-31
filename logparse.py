@@ -110,12 +110,17 @@ def update_overlay(p=True):
             f.seek(0)
             f.write(out)
 
-with open(opts["ktane-log"]) as f:
-    curbomb = f.read().split("[State] Enter GameplayState\n")[-1].split("\n")
-    print(curbomb[:3])
-    for line in curbomb:
+with open(opts["ktane-log"]) as f1:
+    curbomb = f1.read()
+    if not "[State] Enter GameplayState\n" in curbomb:
+        try:
+            with open(opts["ktane-log"] + ".1") as f2:
+                curbomb = f2.read() + curbomb
+        except FileNotFoundError:
+            pass
+    for line in curbomb.split("[State] Enter GameplayState\n")[-1].split("\n"):
         parse(line)
         update_overlay(p=False)
-    for line in tailer.follow(f):
+    for line in tailer.follow(f1):
         parse(line)
         update_overlay()
