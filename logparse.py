@@ -4,25 +4,10 @@ import json
 with open("settings.json") as f:
     opts = json.load(f)
 
-_BOMB = {
-        "seed": "",
-        "time": "",
-        "time_pretty": "",
-        "strikes": "",
-        "flip": "",
-        "serial": "",
-        "modules": [],
-        "plates": 0,
-        "holders": 0,
-        "ports": [],
-        "batts": [],
-        "indicators": {"unlit": [], "lit": []},
-        "rip": False
-        }
-
 def reset_bomb():
     print("RESETTING")
-    return {k:type(v)(v) for k,v in _BOMB.items()}
+    with open("template.json") as f:
+        return json.load(f)
 BOMB = reset_bomb()
 
 def hms(s):
