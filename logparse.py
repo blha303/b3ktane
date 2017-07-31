@@ -77,10 +77,10 @@ def update_overlay(p=True):
         return
     with open(opts["overlay-output"], "w", encoding="utf-8") as f:
         ports = (",".join(BOMB["ports"]) if BOMB["ports"] else "no ports") + " {}p".format(BOMB["plates"])
-        inds = ",".join("{} {}".format(k,",".join(v)) for k,v in BOMB["indicators"].items()) if BOMB["indicators"]["unlit"] or BOMB["indicators"]["lit"] else "no indicators"
+        inds = "\n".join("{} {}".format(k,",".join(v)) for k,v in BOMB["indicators"].items() if v) if BOMB["indicators"]["unlit"] or BOMB["indicators"]["lit"] else "no indicators"
         batts = ("{}aa".format(int(BOMB["batts"].count("2"))*2) if "2" in BOMB["batts"] else "") + \
                 ("{}d".format(BOMB["batts"].count("1")) if "1" in BOMB["batts"] else "") + \
-                "{}h".format(BOMB["holders"])
+                ("{}h".format(BOMB["holders"]) if BOMB["holders"] > 0 else "no batteries")
         f.write("\n".join([BOMB["serial"], ports, inds, batts]) + "\n")
 
 with open(opts["ktane-log"]) as f:
